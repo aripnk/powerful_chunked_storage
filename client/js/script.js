@@ -15,7 +15,7 @@ function processFile(e) {
   var size = file.size;
   var sliceSize = 1024000;
   var nchunks = Math.ceil(size / sliceSize);
-  var filename = file.name.replace(/[^A-Z0-9]/ig,"_");
+  var filename = file.name.replace(/[^A-Z0-9.]/ig,"_");
   var type = file.type;
   var start = 0;
   var iter = 0;
