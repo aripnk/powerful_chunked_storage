@@ -2,13 +2,14 @@
 Used to store any large file with minimum network failure. All file (chunk) are stored in leveldb with unique key.
 
 example :
-we have a file.pdf with 1 GB size, the chunk size is 1 MB. so we have 1000 chunks stored in leveldb + 1 metadata. The identifier key is generated at first chunk upload. the main identifier key for a file is time_millis.filename
+we have a file.pdf with 1 GB size, the chunk size is 1 MB. so we have 1000 chunks stored in leveldb + 1 metadata. The identifier key is generated at first chunk upload. the main identifier key for a file is ```time_millis.filename```
 
 So all the key stored in leveldb are :
 ```
 1508834228933.file.pdf.meta
 1508834228933.file.pdf.0
 1508834228933.file.pdf.1
+...
 1508834228933.file.pdf.999
 ```
 
@@ -42,7 +43,7 @@ make
 
 ### nginx integration
 
-If you are running you website on port ```80``` with domain ```storage.hello.com```. you can use nginx reverse proxy
+If you are running your website on port ```80``` with domain ```storage.hello.com```. you can use nginx reverse proxy
 
 ```
 server {

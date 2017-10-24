@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2017 Arif Nur Khoirudin
+ *
+ * mail : <hello@arifnurkhoirudin.com>
+ * site : https://arifnurkhoirudin.com
+ *
+ * Don't redistribute or copying without owner permission
+*/
+
 #include "chunkedstorage.h"
 
 int
@@ -11,8 +20,8 @@ main(int argc, char* argv[])
 
   struct event *sigint_event = evsignal_new(base, SIGINT, sigint_cb, base);
   if (!sigint_event || event_add(sigint_event, NULL) < 0) {
-      fprintf(stderr, "Could not create or add the SIGINT signal event.\n");
-      return -1;
+    fprintf(stderr, "Could not create or add the SIGINT signal event.\n");
+    return -1;
   }
 
   struct evhttp *http = http_setup("0.0.0.0", atoi(argv[1]), &websvc);
@@ -38,10 +47,10 @@ websvc_init(websvc_t *websvc, void* base)
 
 long long current_timestamp()
 {
-    struct timeval te;
-    gettimeofday(&te, NULL); // get current time
-    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
-    return milliseconds;
+  struct timeval te;
+  gettimeofday(&te, NULL); // get current time
+  long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
+  return milliseconds;
 }
 
 static struct evhttp *
@@ -75,8 +84,8 @@ ignore_sigpipe(void)
   sa.sa_handler = SIG_IGN;
 
   if (sigemptyset(&sa.sa_mask) < 0 || sigaction(SIGPIPE, &sa, 0) < 0) {
-      perror("Could not ignore the SIGPIPE signal");
-      exit(EXIT_FAILURE);
+    perror("Could not ignore the SIGPIPE signal");
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -110,11 +119,9 @@ meta_set_value(meta_t *meta, char* valuemeta,
                const char *filename, const char *type)
 {
   memcpy(valuemeta, meta, sizeof(meta_t));
-
   memcpy(valuemeta+sizeof(meta_t),
         filename,
         meta->filename_len);
-
   memcpy(valuemeta + sizeof(meta_t) + meta->filename_len,
         type,
         meta->type_len);
@@ -156,16 +163,14 @@ http_chunked_trickle_cb(evutil_socket_t fd, short events, void *arg)
   char* data;
   int ret = db_read(&state->db, key, strlen(key), &data);
 
-
   if (ret != DB_SUCCESS){
     evhttp_send_reply_end(state->req);
     event_free(state->timer);
     free(state);
-		return;
+    return;
   }
 
   evbuffer_add(evb, data, state->db.vallen);
-
   evhttp_send_reply_chunk(state->req, evb);
   evbuffer_free(evb);
 
@@ -180,45 +185,45 @@ http_chunked_trickle_cb(evutil_socket_t fd, short events, void *arg)
 }
 
 
-//*CALLBACK FUNCTION*//
+//============*CALLBACK FUNCTION*====================//
 
 static void
 http_upload_cb (struct evhttp_request *req, void *arg)
 {
   websvc_t* websvc = (websvc_t*)arg;
   struct evbuffer *evb = NULL;
-	const char *uri = evhttp_request_get_uri (req);
-	struct evhttp_uri *decoded = NULL;
+  const char *uri = evhttp_request_get_uri (req);
+  struct evhttp_uri *decoded = NULL;
 
   char answer[256];
   char keymeta[256];
   char valuemeta[1024];
 
   /* Decode URL */
-	decoded = evhttp_uri_parse (uri);
-	if (! decoded){
-		evhttp_send_error (req, HTTP_BADREQUEST, 0);
-		return;
-	}
+  decoded = evhttp_uri_parse (uri);
+  if (! decoded){
+  	evhttp_send_error (req, HTTP_BADREQUEST, 0);
+  	return;
+  }
 
   struct evkeyvalq kv;
-	memset (&kv, 0, sizeof (kv));
-	struct evbuffer *buf = evhttp_request_get_input_buffer (req);
+  memset (&kv, 0, sizeof (kv));
+  struct evbuffer *buf = evhttp_request_get_input_buffer (req);
 
-	char* query = NULL;
-	query = malloc(strlen(uri)+1);
-	query[strlen(uri)] = 0;
-	memcpy(query, uri+8, strlen(uri));
+  char* query = NULL;
+  query = malloc(strlen(uri)+1);
+  query[strlen(uri)] = 0;
+  memcpy(query, uri+8, strlen(uri));
 
-	if (0 != evhttp_parse_query_str (query, &kv)){
-		evhttp_send_error (req, HTTP_BADREQUEST, 0);
+  if (0 != evhttp_parse_query_str (query, &kv)){
+    evhttp_send_error (req, HTTP_BADREQUEST, 0);
     evbuffer_drain(buf, evbuffer_get_length(buf));
     free (query);
-		return;
-	}
+    return;
+  }
 
-	const char* key = evhttp_find_header (&kv, "key");
-	const char* filename = evhttp_find_header (&kv, "filename");
+  const char* key = evhttp_find_header (&kv, "key");
+  const char* filename = evhttp_find_header (&kv, "filename");
   const char* filesize = evhttp_find_header (&kv, "size");
   const char* type = evhttp_find_header (&kv, "type");
   const char* nchunks = evhttp_find_header (&kv, "nchunks");
@@ -226,11 +231,11 @@ http_upload_cb (struct evhttp_request *req, void *arg)
   if (key == NULL) {
     evhttp_send_error (req, HTTP_BADREQUEST, 0);
     if (decoded) evhttp_uri_free (decoded);
-		if (evb) evbuffer_free (evb);
+    if (evb) evbuffer_free (evb);
     evbuffer_drain(buf, evbuffer_get_length(buf));
-		free(query);
-		return;
-	}
+    free(query);
+    return;
+  }
 
   // FIRST QUERY/DATA
   if (isthisfirst(key)){
@@ -299,38 +304,38 @@ static void
 http_chunked_cb(struct evhttp_request *req, void *arg)
 {
   struct evbuffer *evb = NULL;
-	const char *uri = evhttp_request_get_uri (req);
-	struct evhttp_uri *decoded = NULL;
-	char answer[256];
+  const char *uri = evhttp_request_get_uri (req);
+  struct evhttp_uri *decoded = NULL;
+  char answer[256];
 
   /* Decode payload */
-	struct evkeyvalq kv;
-	memset (&kv, 0, sizeof (kv));
+  struct evkeyvalq kv;
+  memset (&kv, 0, sizeof (kv));
 
-	struct evbuffer *buf = evhttp_request_get_input_buffer (req);
-	evbuffer_add (buf, "", 1);    /* NUL-terminate the buffer */
-	char *payload = (char *) evbuffer_pullup (buf, -1);
+  struct evbuffer *buf = evhttp_request_get_input_buffer (req);
+  evbuffer_add (buf, "", 1);    /* NUL-terminate the buffer */
+  char *payload = (char *) evbuffer_pullup (buf, -1);
   if (0 != evhttp_parse_query_str (payload, &kv)) {
-		printf ("Malformed payload. Sending BADREQUEST\n");
-		evhttp_send_error (req, HTTP_BADREQUEST, 0);
-		return;
-	}
+    printf ("Malformed payload. Sending BADREQUEST\n");
+    evhttp_send_error (req, HTTP_BADREQUEST, 0);
+    return;
+  }
 
   const char* key;
   char* keyg;
   char datakey[256];
 
   if (evhttp_request_get_command (req) != EVHTTP_REQ_POST) {
-		strtok_r((char*)uri, "?", &keyg);
+    strtok_r((char*)uri, "?", &keyg);
     strcpy(datakey, keyg);
-	}else{
+  }else{
     key = evhttp_find_header (&kv, "key");
     strcpy(datakey, key);
   }
 
   if (key == NULL && keyg == NULL) {
     evhttp_send_error (req, HTTP_BADREQUEST, 0);
-		return;
+    return;
   }
 
   chunk_req_state_t *state = malloc(sizeof(chunk_req_state_t));
@@ -366,7 +371,7 @@ http_chunked_cb(struct evhttp_request *req, void *arg)
   memcpy(&filename, metaval + sizeof(meta_t), meta_header.filename_len);
 
   memcpy(&content_type, metaval + sizeof(meta_t) + meta_header.filename_len,
-         meta_header.type_len);
+        meta_header.type_len);
 
   state->req = req;
   state->total = meta_header.nchunks;

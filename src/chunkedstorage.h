@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2017 Arif Nur Khoirudin
+ *
+ * mail : <hello@arifnurkhoirudin.com>
+ * site : https://arifnurkhoirudin.com
+ *
+ * Don't redistribute or copying without owner permission
+*/
+
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
